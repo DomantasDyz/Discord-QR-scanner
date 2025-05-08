@@ -3,6 +3,8 @@ const {loadImage, createCanvas} = require("canvas");
 const {scanImageData} = require('@undecaf/zbar-wasm');
 const {mainGuildId, mainChannelId, imgGuildId, imgChannelId} = require('../config.json');
 
+const Board  = require('../models/leaderbordoStructure'); //db
+
 
 const client = new Client({intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]});
 
@@ -68,6 +70,24 @@ module.exports = {
                         if (apdorojama) {
                             await apdorojama.edit("✅");
                             await apdorojama.edit({embeds: [success]});
+
+                            await message.react('🙏🏿');
+                            //irasymas i DB
+
+                            const name = message.member?.displayName || message.author.username;
+                            const persona = await Board.findOne({where: {id: message.author.id}});
+                            if(!persona) {
+                                await Board.create({
+                                    id: message.author.id,
+                                    name: name,
+                                    koduku_count: 1
+                                });
+                            } else {
+                                await Board.update(
+                                    { koduku_count: Sequelize.literal(`koduku_count + 1`) },
+                                    { where: { id: message.author.id } },
+                                );
+                            }
                         }
                 } else {
 
